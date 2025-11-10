@@ -8,10 +8,10 @@ from download_dataset import download_and_extract_dataset
 
 
 class NoiseGenerator:
-    def __init__(self, sample_rate=8000):
+    def __init__(self, sample_rate: int = 8000):
         self.sr = sample_rate
 
-    def white_noise(self, n, snr_db):
+    def white_noise(self, n: int, snr_db):
         """random sampling from normal distribution"""
 
         # flat spectral density
@@ -19,7 +19,7 @@ class NoiseGenerator:
         noise = np.random.normal(0, 1, n)
         return self._adjust_snr(noise, snr_db)
 
-    def pink_noise(self, n, snr_db):
+    def pink_noise(self, n, snr_db: float):
         """1/f noise
         high frequency bins get smaller amplitude
         low frequenc bins remain stronger"""
@@ -35,7 +35,7 @@ class NoiseGenerator:
         pink = np.real(np.fft.ifft(fft_pink))
         return self._adjust_snr(pink, snr_db)
 
-    def brown_noise(self, n, snr_db):
+    def brown_noise(self, n, snr_db: float):
         white = np.random.randn(n)
         freqs = np.fft.fftfreq(n, 1 / self.sr)
         freqs[0] = 1
@@ -44,9 +44,27 @@ class NoiseGenerator:
         brown = np.real(np.fft.ifft(fft_brown))
         return self._adjust_snr(brown, snr_db)
 
-    # add band limited, impulsive, colored mix later
+    def impulsive_noise(self, signal_length, snr_db: float, impulse_prob: float = 0.01):
+        """simulates clicks, pops, or digital artifacts"""
+        base_noise = np.random.normal(0, 0.1, signal_length)
 
-    def _adjust_snr(self, noise, target_snr_db):
+        impulse_mask = np.random.random(signal_length) < impulse_prob
+        impulses = np.random.normal(0, 5, signal_length) * impulse_mask
+
+        noise = base_noise + impulses
+        return self._adjust_snr(noise, snr_db)
+
+    def colored_noise_mix(self, signal_length, snr_db: float):
+        white = self.white_noise(signal_length, snr_db + 6)
+        pink = self.pink_noise(signal_length, snr_db + 6)
+        brown = self.brown_noise(signal_length, snr_db + 6)
+
+        w1, w2, w3 = np.random.dirichlet([1, 1, 1])
+        mixed = w1 * white + w2 * pink + w3 * brown
+
+        return self._adjust_snr(mixed, snr_db)
+
+    def _adjust_snr(self, noise, target_snr_db: float):
         """
         SNR = 10. log10(Psignal/Pnoise)
         """
@@ -91,7 +109,6 @@ def visualize_noises(noises, sr):
         plt.xlabel("Samples")
         plt.ylabel("Amplitude")
 
-        # Power spectral density to show frequency content
         freqs = np.fft.rfftfreq(len(noise), 1 / sr)
         psd = np.abs(np.fft.rfft(noise)) ** 2
         plt.subplot(3, 2, 2 * i)
@@ -104,7 +121,7 @@ def visualize_noises(noises, sr):
     plt.show()
 
 
-def test_noise_on_sample(audio_path: str, snr_db=10, visualize=True):
+def test_noise_on_sample(audio_path: str, snr_db: float = 10, visualize: bool = True):
     sr, data = wavfile.read(audio_path)
     data = data.astype(np.float32) / np.max(np.abs(data))
     n = len(data)
