@@ -75,9 +75,10 @@ class MelSpectrogramConverter:
     def mel_to_audio(self, mel_db, audio_length, n_iter=32):
         """
         Reconstruct audio from Log-Mel (dB).
-        mel_db: numpy array or torch tensor with shape (n_mels, frames) in dB
-        audio_length: desired output sample length (int)
-        Returns: 1D numpy array (float32) audio waveform
+        :mel_db: numpy array or torch tensor with shape (n_mels, frames) in dB
+        :audio_length: desired output sample length (int)
+
+        returns: 1D numpy array (float32) audio waveform
         """
         if isinstance(mel_db, torch.Tensor):
             mel_db = mel_db.cpu().numpy()

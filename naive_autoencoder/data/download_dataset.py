@@ -2,12 +2,13 @@ import os
 import zipfile
 import requests
 import numpy as np
-import sounddevice as sd
 from tqdm import tqdm
+import sounddevice as sd
 from scipy.io import wavfile
+from typing import Union
 
 
-def download_and_extract_dataset(url, dataset_dir):
+def download_and_extract_dataset(url: str, dataset_dir: str):
     zip_path = os.path.join(dataset_dir, "temp.zip")
     os.makedirs(dataset_dir, exist_ok=True)
 
@@ -32,7 +33,7 @@ def download_and_extract_dataset(url, dataset_dir):
     os.remove(zip_path)
 
 
-def load_fsdd_dataset(dataset_dir, max_files=None):
+def load_fsdd_dataset(dataset_dir: str, max_files: Union[int, None] = None):
     recordings_dir = os.path.join(
         dataset_dir, "free-spoken-digit-dataset-master", "recordings"
     )
@@ -48,7 +49,7 @@ def load_fsdd_dataset(dataset_dir, max_files=None):
     return audio_files, labels
 
 
-def play_sample(audio_path):
+def play_sample(audio_path: str):
     sr, data = wavfile.read(audio_path)
     data = data.astype(np.float32) / np.max(np.abs(data))
     sd.play(data, sr)

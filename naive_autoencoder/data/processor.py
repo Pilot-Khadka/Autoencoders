@@ -103,3 +103,7 @@ class AudioDataset(Dataset):
             torch.tensor(noisy, dtype=torch.float32),
             torch.tensor(clean, dtype=torch.float32),
         )
+
+
+if __name__ == "__main__":
+    pass
